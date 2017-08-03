@@ -107,10 +107,10 @@ func (f FieldGenerator) Generate() int64 {
 }
 
 func makeFieldGenerator(seed, c, a, x, y int64) FieldGenerator {
- return FieldGenerator{
-    nur: nur{
+	return FieldGenerator{
+		nur: nur{
 			Rand: makeRand(seed),
-			c: c,
+			c:    c,
 		},
 		a: a,
 		x: x,
@@ -119,11 +119,11 @@ func makeFieldGenerator(seed, c, a, x, y int64) FieldGenerator {
 }
 
 func C_ID(seed, c int64) FieldGenerator {
-	return makeFieldGenerator(seed, c % 1024, 1023, 1, 3000)
+	return makeFieldGenerator(seed, c%1024, 1023, 1, 3000)
 }
 
 func OL_I_ID(seed, c int64) FieldGenerator {
-	return makeFieldGenerator(seed, c % 8192, 8191, 1, 100000)
+	return makeFieldGenerator(seed, c%8192, 8191, 1, 100000)
 }
 
 // 2.4.1.5.1
@@ -149,11 +149,11 @@ type NameGenerator struct {
 
 func (g NameGenerator) Generate() string {
 	i := g.Num.Generate()
-	return syllables[i/100] + syllables[(i / 10) % 10] + syllables[i % 10]
+	return syllables[i/100] + syllables[(i/10)%10] + syllables[i%10]
 }
 
 func C_LAST(seed, c int64) NameGenerator {
-	return NameGenerator{makeFieldGenerator(seed, c % 256, 255, 0, 999)}
+	return NameGenerator{makeFieldGenerator(seed, c%256, 255, 0, 999)}
 }
 
 // 2.1.6.1
@@ -168,9 +168,9 @@ func ValidateC_LAST(cLoad, cRun int64) error {
 
 	if cDelta < 65 || cDelta > 119 {
 		return fmt.Errorf(
-			"The values for C used to generate C_LAST for loading and " +
-			"running must differ by between 65 and 119.  Saw %v, values " +
-			"were %v and %v.",
+			"The values for C used to generate C_LAST for loading and "+
+				"running must differ by between 65 and 119.  Saw %v, values "+
+				"were %v and %v.",
 			cDelta,
 			cLoadFinal,
 			cRunFinal,

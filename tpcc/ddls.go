@@ -179,7 +179,7 @@ var createStmts = [...]string{
 		) INTERLEAVE IN PARENT warehouse (s_w_id);
 	`,
 
-  // 2.4.1.6
+	// 2.4.1.6
 	order: `
 		CREATE TABLE "order" (
 			o_id              INT           NOT NULL,

@@ -18,7 +18,7 @@
 package main
 
 type Terminal struct {
-	rand    Rand
+	rand Rand
 
 	w_id    int64
 	c_last  NameGenerator
@@ -28,10 +28,10 @@ type Terminal struct {
 
 func makeTerminal(seed, c_last, c_id, ol_i_id, w_id int64) *Terminal {
 	return &Terminal{
-		rand: makeRand(seed),
-		w_id: w_id,
-		c_last: C_LAST(seed, c_last),
-		c_id: C_ID(seed, c_id),
+		rand:    makeRand(seed),
+		w_id:    w_id,
+		c_last:  C_LAST(seed, c_last),
+		c_id:    C_ID(seed, c_id),
 		ol_i_id: OL_I_ID(seed, ol_i_id),
 	}
 }

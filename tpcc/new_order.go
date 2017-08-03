@@ -36,7 +36,7 @@ func (t *Terminal) NewOrder(db *sql.DB) error {
 
 	// 2.4.1.2
 	d_id := t.rand.Rand(1, 10)
-  c_id := t.c_id.Generate()
+	c_id := t.c_id.Generate()
 
 	// 2.4.1.3
 	ol_cnt := t.rand.Rand(5, 15)

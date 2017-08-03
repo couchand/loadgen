@@ -66,7 +66,7 @@ func main() {
 		dbURL = flag.Arg(0)
 	}
 
-  db, err := setupDatabase(dbURL)
+	db, err := setupDatabase(dbURL)
 	if err != nil {
 		log.Fatalf("connecting to database failed: %s\n", err)
 	}
