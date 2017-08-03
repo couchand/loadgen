@@ -18,10 +18,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 )
 
+// Uniform random
 type Rand struct {
 	generator *rand.Rand
 }
@@ -38,12 +40,51 @@ func (r Rand) Rand(x, y int64) int64 {
 	return min + r.generator.Int63n(size)
 }
 
+// 4.3.2.2
+func (r Rand) randString(x, y int64, a, z rune) string {
+	length := r.Rand(x, y)
+	buf := bytes.NewBuffer(make([]byte, 0, length))
+
+	for i := int64(0); i < length; i++ {
+		buf.WriteRune(rune(r.Rand(int64(a), int64(z))))
+	}
+
+	return buf.String()
+}
+
+func (r Rand) RandAString(x, y int64) string {
+	return r.randString(x, y, 'A', 'Z')
+}
+
+func (r Rand) RandNString(x, y int64) string {
+	return r.randString(x, y, '0', '9')
+}
+
+// 4.3.2.6
+func (r Rand) Perm(x, y int) []int {
+	size := x - y + 1
+	min := y
+	if x < y {
+		size = y - x + 1
+		min = x
+	}
+
+	nums := r.generator.Perm(size)
+
+	for i, v := range nums {
+		nums[i] = min + v
+	}
+
+	return nums
+}
+
 func makeRand(seed int64) Rand {
 	return Rand{
 		generator: rand.New(rand.NewSource(seed)),
 	}
 }
 
+// Non-uniform random
 type nur struct {
 	Rand
 	c int64
@@ -136,4 +177,17 @@ func ValidateC_LAST(cLoad, cRun int64) error {
 		)
 	}
 	return nil
+}
+
+// 4.3.2.7
+type ZipGenerator struct {
+	Rand
+}
+
+func (g ZipGenerator) Generate() string {
+	return g.Rand.RandNString(4, 4) + "11111"
+}
+
+func ZIP(seed int64) ZipGenerator {
+	return ZipGenerator{makeRand(seed)}
 }
