@@ -17,6 +17,12 @@
 
 package main
 
+import (
+	"database/sql"
+
+	"github.com/cockroachdb/cockroach-go/crdb"
+)
+
 type ol struct {
 	ol_i_id        int64
 	ol_supply_w_id int64
@@ -24,7 +30,7 @@ type ol struct {
 }
 
 // 2.4
-func (t *Terminal) NewOrder() {
+func (t *Terminal) NewOrder(db *sql.DB) error {
 	// 2.4.1.1
 	w_id := t.w_id
 
@@ -70,8 +76,29 @@ func (t *Terminal) NewOrder() {
 		}
 	}
 
-	_ = w_id
-	_ = d_id
-	_ = c_id
-	_ = ols
+	err := crdb.ExecuteTx(db, func(tx *sql.Tx) error {
+		var w_tax int64
+		err := db.QueryRow("SELECT w_tax FROM warehouse WHERE w_id = $1;", w_id).Scan(&w_tax)
+		if err != nil {
+			return err
+		}
+
+		var d_tax int64
+		err = db.QueryRow("SELECT d_tax FROM district WHERE w_id = $1 AND d_id = $2;", w_id, d_id).Scan(&d_tax)
+		if err != nil {
+			return err
+		}
+
+		_ = c_id
+		_ = w_tax
+		_ = d_tax
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

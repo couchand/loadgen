@@ -80,4 +80,10 @@ func main() {
 			log.Printf("database setup complete. Loading...\n")
 		}
 	}
+
+	t := makeTerminal(0, 0, 0, 0, 0)
+	err = t.NewOrder(db)
+	if err != nil {
+		log.Fatalf("error creating new order: %s\n", err)
+	}
 }

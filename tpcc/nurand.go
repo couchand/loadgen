@@ -38,6 +38,12 @@ func (r Rand) Rand(x, y int64) int64 {
 	return min + r.generator.Int63n(size)
 }
 
+func makeRand(seed int64) Rand {
+	return Rand{
+		generator: rand.New(rand.NewSource(seed)),
+	}
+}
+
 type nur struct {
 	Rand
 	c int64
@@ -62,19 +68,13 @@ func (f FieldGenerator) Generate() int64 {
 func makeFieldGenerator(seed, c, a, x, y int64) FieldGenerator {
  return FieldGenerator{
     nur: nur{
-			Rand: Rand{
-				generator: rand.New(rand.NewSource(seed)),
-			},
+			Rand: makeRand(seed),
 			c: c,
 		},
 		a: a,
 		x: x,
 		y: y,
 	}
-}
-
-func C_LAST(seed, c int64) FieldGenerator {
-	return makeFieldGenerator(seed, c % 256, 255, 0, 999)
 }
 
 func C_ID(seed, c int64) FieldGenerator {
@@ -87,6 +87,33 @@ func OL_I_ID(seed, c int64) FieldGenerator {
 
 // 2.4.1.5.1
 const INVALID_I_ID = 100001
+
+// 4.3.2.3
+var syllables = [...]string{
+	"BAR",
+	"OUGHT",
+	"ABLE",
+	"PRI",
+	"PRES",
+	"ESE",
+	"ANTI",
+	"CALLY",
+	"ATION",
+	"EING",
+}
+
+type NameGenerator struct {
+	Num FieldGenerator
+}
+
+func (g NameGenerator) Generate() string {
+	i := g.Num.Generate()
+	return syllables[i/100] + syllables[(i / 10) % 10] + syllables[i % 10]
+}
+
+func C_LAST(seed, c int64) NameGenerator {
+	return NameGenerator{makeFieldGenerator(seed, c % 256, 255, 0, 999)}
+}
 
 // 2.1.6.1
 func ValidateC_LAST(cLoad, cRun int64) error {
