@@ -16,6 +16,15 @@ const BATCH_SIZE = 500
 const ITEMS_COUNT = 100000
 const ITEMS_PLACES = "(%v,%v,'%s',%0.2f,'%s')"
 
+// Performs a one-indexed group by
+func groupBy(group_size, count int) (item, group int) {
+	index := count - 1
+	i := index % group_size
+	g := index / group_size
+	return i + 1, g + 1
+}
+
+// Inserts the row values into the table
 func insertRows(db *sql.DB, prefix string, items []string) error {
 	statement := prefix + strings.Join(items, ",")
 
@@ -25,6 +34,7 @@ func insertRows(db *sql.DB, prefix string, items []string) error {
 	})
 }
 
+// Populate a table with a number of records
 func populateTable(
 	db *sql.DB,
 	rand Rand,
@@ -93,8 +103,7 @@ const STOCK_PER_WAREHOUSE int = 100000
 const STOCK_PLACES string = "(%v,%v,%v,'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%v,%v,%v,'%s')"
 
 func makeStock(rand Rand, count int) string {
-	s_i_id := 1 + (count - 1) % STOCK_PER_WAREHOUSE
-	s_w_id := 1 + (count - 1) / STOCK_PER_WAREHOUSE
+	s_i_id, s_w_id := groupBy(STOCK_PER_WAREHOUSE, count)
 	s_quantity := rand.Rand(10, 100)
 	s_dist_01 := rand.RandAString(24, 24)
 	s_dist_02 := rand.RandAString(24, 24)
@@ -123,8 +132,7 @@ const DISTRICTS_PER_WAREHOUSE int = 10
 const DISTRICTS_PLACES string = "(%v,%v,'%s','%s','%s','%s','%s','%s',%0.4f,%0.2f,%v)"
 
 func makeDistrict(rand Rand, count int) string {
-	d_id := 1 + (count - 1) % DISTRICTS_PER_WAREHOUSE
-	d_w_id := 1 + (count - 1) / DISTRICTS_PER_WAREHOUSE
+	d_id, d_w_id := groupBy(DISTRICTS_PER_WAREHOUSE, count)
 	d_name := rand.RandAString(6, 10)
 	d_street_1 := rand.RandAString(10, 20)
 	d_street_2 := rand.RandAString(10, 20)
@@ -147,9 +155,8 @@ const CUSTOMERS_PER_WAREHOUSE int = CUSTOMERS_PER_DISTRICT * DISTRICTS_PER_WAREH
 const CUSTOMERS_PLACES string = "(%v,%v,%v,'%s','%s','%s','%s','%s','%s','%s','%s','%s',DEFAULT,'%s',%0.2f,%0.4f,%0.2f,%0.2f,%v,%v,'%s')"
 
 func makeCustomer(rand Rand, count int) string {
-	c_id := 1 + (count - 1) % CUSTOMERS_PER_DISTRICT
-	c_d_id := 1 + ((count - 1) / CUSTOMERS_PER_DISTRICT) % DISTRICTS_PER_WAREHOUSE
-	c_w_id := 1 + (count - 1) / CUSTOMERS_PER_WAREHOUSE
+	c_id, district := groupBy(CUSTOMERS_PER_DISTRICT, count)
+	c_d_id, c_w_id := groupBy(DISTRICTS_PER_WAREHOUSE, district)
 
 	c_last := "FOOBAR"
 /*
