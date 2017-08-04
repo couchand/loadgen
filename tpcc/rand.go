@@ -28,6 +28,12 @@ type Rand struct {
 	generator *rand.Rand
 }
 
+func makeRand(seed int64) Rand {
+	return Rand{
+		generator: rand.New(rand.NewSource(seed)),
+	}
+}
+
 // 2.1.5
 func (r Rand) Rand(x, y int64) int64 {
 	size := x - y + 1
@@ -78,10 +84,9 @@ func (r Rand) Perm(x, y int) []int {
 	return nums
 }
 
-func makeRand(seed int64) Rand {
-	return Rand{
-		generator: rand.New(rand.NewSource(seed)),
-	}
+// 4.3.2.7
+func (r Rand) RandZip() string {
+	return r.RandNString(4, 4) + "11111"
 }
 
 // Non-uniform random
@@ -177,17 +182,4 @@ func ValidateC_LAST(cLoad, cRun int64) error {
 		)
 	}
 	return nil
-}
-
-// 4.3.2.7
-type ZipGenerator struct {
-	Rand
-}
-
-func (g ZipGenerator) Generate() string {
-	return g.Rand.RandNString(4, 4) + "11111"
-}
-
-func ZIP(seed int64) ZipGenerator {
-	return ZipGenerator{makeRand(seed)}
 }

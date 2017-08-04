@@ -291,12 +291,12 @@ func createTables(db *sql.DB) error {
 		}
 
 		if *verbose {
-			log.Println("Finished dropping tables.")
+			log.Println("finished dropping tables.")
 		}
 	}
 
 	if *verbose {
-		log.Println("Creating tables")
+		log.Println("creating tables")
 	}
 
 	for i, createStmt := range createStmts {
@@ -315,7 +315,7 @@ func createTables(db *sql.DB) error {
 		}
 	}
 	if *verbose {
-		log.Println("Finished creating tables.")
+		log.Println("finished creating tables.")
 	}
 
 	return nil

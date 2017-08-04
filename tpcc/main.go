@@ -14,8 +14,11 @@ import (
 var verbose = flag.Bool("v", false, "Print verbose debug output")
 var drop = flag.Bool("drop", false,
 	"Drop the existing table and recreate it to start from scratch")
-var load = flag.Bool("load", false,
-	"Load data into the database from a file")
+
+//var load = flag.Bool("load", false,
+//	"Load data into the database from a file")
+var create = flag.Bool("create", false, "Create database schema")
+var populate = flag.Bool("populate", false, "Populate initial data")
 
 var W = flag.Int("W", 10, "Scale factor of benchmark")
 
@@ -71,13 +74,24 @@ func main() {
 		log.Fatalf("connecting to database failed: %s\n", err)
 	}
 
-	if *load {
+	if *create {
 		if err = createTables(db); err != nil {
 			log.Fatalf("creating tables and indices failed: %s\n", err)
 		}
 
 		if *verbose {
-			log.Printf("database setup complete. Loading...\n")
+			log.Printf("database schema setup complete\n")
+		}
+	}
+
+	if *populate {
+		rand := makeRand(0)
+		if err = Populate(db, rand, 10); err != nil {
+			log.Fatalf("populating initial data failed: %s\n", err)
+		}
+
+		if *verbose {
+			log.Printf("populating database complete\n")
 		}
 	}
 
