@@ -89,6 +89,27 @@ func (r Rand) RandZip() string {
 	return r.RandNString(4, 4) + "11111"
 }
 
+// 4.3.3.1
+func (r Rand) RandData() string{
+	data := r.RandAString(26, 50)
+
+	has_original := r.Rand(1, 10)
+	if has_original == 1 {
+		length := len(data)
+		position := 50
+		for position > 42 {
+			position = int(r.Rand(0, int64(length)))
+		}
+		rest := ""
+		if position + 8 < length {
+			rest = data[position+8:]
+		}
+		data = data[:position] + "ORIGINAL" + rest
+	}
+
+  return data
+}
+
 // Non-uniform random
 type nur struct {
 	Rand

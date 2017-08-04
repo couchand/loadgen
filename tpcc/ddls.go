@@ -87,7 +87,7 @@ var createStmts = [...]string{
 
 			PRIMARY KEY (d_w_id, d_id),
 			CONSTRAINT d_fk_warehouse FOREIGN KEY (d_w_id) REFERENCES warehouse
-		) INTERLEAVE IN PARENT warehouse (d_w_id);
+		);
 	`,
 
 	customer: `
@@ -117,7 +117,7 @@ var createStmts = [...]string{
 			PRIMARY KEY (c_w_id, c_d_id, c_id),
 			CONSTRAINT c_fk_district FOREIGN KEY
 				(c_w_id, c_d_id) REFERENCES district
-		) INTERLEAVE IN PARENT district (c_w_id, c_d_id);
+		);
 	`,
 
 	history: `
@@ -176,7 +176,7 @@ var createStmts = [...]string{
 				(s_w_id) REFERENCES warehouse,
 			CONSTRAINT s_fk_item FOREIGN KEY
 				(s_i_id) REFERENCES item
-		) INTERLEAVE IN PARENT warehouse (s_w_id);
+		);
 	`,
 
 	// 2.4.1.6

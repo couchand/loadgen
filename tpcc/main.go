@@ -40,7 +40,7 @@ func setupDatabase(dbURL string) (*sql.DB, error) {
 
 	// Ensure the database exists
 	if err = crdb.ExecuteTx(db, func(tx *sql.Tx) error {
-		_, inErr := tx.Exec("CREATE DATABASE IF NOT EXISTS tpch")
+		_, inErr := tx.Exec("CREATE DATABASE IF NOT EXISTS tpcc")
 		return inErr
 	}); err != nil {
 		if *verbose {
