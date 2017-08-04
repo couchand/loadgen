@@ -93,8 +93,8 @@ const STOCK_PER_WAREHOUSE int = 100000
 const STOCK_PLACES string = "(%v,%v,%v,'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%v,%v,%v,'%s')"
 
 func makeStock(rand Rand, count int) string {
-	s_i_id := count % STOCK_PER_WAREHOUSE + 1
-	s_w_id := count / STOCK_PER_WAREHOUSE
+	s_i_id := 1 + (count - 1) % STOCK_PER_WAREHOUSE
+	s_w_id := 1 + (count - 1) / STOCK_PER_WAREHOUSE
 	s_quantity := rand.Rand(10, 100)
 	s_dist_01 := rand.RandAString(24, 24)
 	s_dist_02 := rand.RandAString(24, 24)
@@ -119,6 +119,77 @@ func makeStock(rand Rand, count int) string {
 	)
 }
 
+const DISTRICTS_PER_WAREHOUSE int = 10
+const DISTRICTS_PLACES string = "(%v,%v,'%s','%s','%s','%s','%s','%s',%0.4f,%0.2f,%v)"
+
+func makeDistrict(rand Rand, count int) string {
+	d_id := 1 + (count - 1) % DISTRICTS_PER_WAREHOUSE
+	d_w_id := 1 + (count - 1) / DISTRICTS_PER_WAREHOUSE
+	d_name := rand.RandAString(6, 10)
+	d_street_1 := rand.RandAString(10, 20)
+	d_street_2 := rand.RandAString(10, 20)
+	d_city := rand.RandAString(10, 20)
+	d_state := rand.RandAString(2, 2)
+	d_zip := rand.RandZip()
+	d_tax := float64(rand.Rand(0, 2000)) / 10000.0
+  d_ytd := 30000.0
+	d_next_o_id := 3001
+
+	return fmt.Sprintf(
+		DISTRICTS_PLACES, d_id, d_w_id, d_name,
+		d_street_1, d_street_2, d_city, d_state, d_zip,
+		d_tax, d_ytd, d_next_o_id,
+	)
+}
+
+const CUSTOMERS_PER_DISTRICT int = 3000
+const CUSTOMERS_PER_WAREHOUSE int = CUSTOMERS_PER_DISTRICT * DISTRICTS_PER_WAREHOUSE
+const CUSTOMERS_PLACES string = "(%v,%v,%v,'%s','%s','%s','%s','%s','%s','%s','%s','%s',DEFAULT,'%s',%0.2f,%0.4f,%0.2f,%0.2f,%v,%v,'%s')"
+
+func makeCustomer(rand Rand, count int) string {
+	c_id := 1 + (count - 1) % CUSTOMERS_PER_DISTRICT
+	c_d_id := 1 + ((count - 1) / CUSTOMERS_PER_DISTRICT) % DISTRICTS_PER_WAREHOUSE
+	c_w_id := 1 + (count - 1) / CUSTOMERS_PER_WAREHOUSE
+
+	c_last := "FOOBAR"
+/*
+	if c_id <= 1000 {
+		c_last = MapLast(c_id - 1)
+	} else {
+		c_last = rand.RandLast()
+	}
+*/
+
+	c_middle := "OE"
+	c_first := rand.RandAString(8, 16)
+	c_street_1 := rand.RandAString(10, 20)
+	c_street_2 := rand.RandAString(10, 20)
+	c_city := rand.RandAString(10, 20)
+	c_state := rand.RandAString(2, 2)
+	c_zip := rand.RandZip()
+	c_phone := rand.RandNString(16, 16)
+
+	c_credit := "GC"
+	if rand.Rand(1, 10) == 1 {
+		c_credit = "BC"
+	}
+
+	c_credit_lim := 50000.0
+	c_discount := float64(rand.Rand(0, 5000)) / 10000.0
+	c_balance := -10.0
+	c_ytd_payment := 10.0
+	c_payment_cnt := 1
+	c_delivery_cnt := 0
+	c_data := rand.RandAString(300, 500)
+
+	return fmt.Sprintf(
+		CUSTOMERS_PLACES, c_id, c_d_id, c_w_id, c_last, c_middle, c_first,
+		c_street_1, c_street_2, c_city, c_state, c_zip, c_phone,
+		c_credit, c_credit_lim, c_discount, c_balance,
+		c_ytd_payment, c_payment_cnt, c_delivery_cnt, c_data,
+	)
+}
+
 func Populate(db *sql.DB, rand Rand, W int) error {
 	var table_data = [...]struct {
 		name  string
@@ -128,6 +199,8 @@ func Populate(db *sql.DB, rand Rand, W int) error {
 		{"item", ITEMS_COUNT, makeItem},
 		{"warehouse", W, makeWarehouse},
 		{"stock", W * STOCK_PER_WAREHOUSE, makeStock},
+    {"district", W * DISTRICTS_PER_WAREHOUSE, makeDistrict},
+		{"customer", W * CUSTOMERS_PER_WAREHOUSE, makeCustomer},
 	}
 
 	var err error

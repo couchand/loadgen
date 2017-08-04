@@ -104,7 +104,7 @@ var createStmts = [...]string{
 			c_state           STRING(2)     NOT NULL,
 			c_zip             STRING(9)     NOT NULL,
 			c_phone           STRING(16)    NOT NULL,
-			c_since           TIMESTAMPTZ   NOT NULL,
+			c_since           TIMESTAMPTZ   NOT NULL DEFAULT current_timestamp(),
 			c_credit          STRING(2)     NOT NULL,
 			c_credit_lim      DECIMAL(12,2) NOT NULL,
 			c_discount        DECIMAL(4,4)  NOT NULL,
