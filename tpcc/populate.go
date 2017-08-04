@@ -37,10 +37,10 @@ func insertRows(db *sql.DB, prefix string, items []string) error {
 // Populate a table with a number of records
 func populateTable(
 	db *sql.DB,
-	rand Rand,
+	rand *Rand,
 	table string,
 	cardinality int,
-	maker func(rand Rand, count int) string,
+	maker func(rand *Rand, count int) string,
 ) error {
 	if *verbose {
 		log.Printf("populating initial data for table %s\n", table)
@@ -70,7 +70,7 @@ func populateTable(
 	return insertRows(db, prefix, rows)
 }
 
-func makeItem(rand Rand, count int) string {
+func makeItem(rand *Rand, count int) string {
 	i_id := count
 	i_im_id := rand.Rand(1, 10000)
 	i_name := rand.RandAString(14, 24)
@@ -82,7 +82,7 @@ func makeItem(rand Rand, count int) string {
 
 const WAREHOUSES_PLACES string = "(%v,'%s','%s','%s','%s','%s','%s',%0.4f,%0.2f)"
 
-func makeWarehouse(rand Rand, count int) string {
+func makeWarehouse(rand *Rand, count int) string {
 	w_id := count
 	w_name := rand.RandAString(6, 10)
 	w_street_1 := rand.RandAString(10, 20)
@@ -102,7 +102,7 @@ func makeWarehouse(rand Rand, count int) string {
 const STOCK_PER_WAREHOUSE int = 100000
 const STOCK_PLACES string = "(%v,%v,%v,'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%v,%v,%v,'%s')"
 
-func makeStock(rand Rand, count int) string {
+func makeStock(rand *Rand, count int) string {
 	s_i_id, s_w_id := groupBy(STOCK_PER_WAREHOUSE, count)
 	s_quantity := rand.Rand(10, 100)
 	s_dist_01 := rand.RandAString(24, 24)
@@ -131,7 +131,7 @@ func makeStock(rand Rand, count int) string {
 const DISTRICTS_PER_WAREHOUSE int = 10
 const DISTRICTS_PLACES string = "(%v,%v,'%s','%s','%s','%s','%s','%s',%0.4f,%0.2f,%v)"
 
-func makeDistrict(rand Rand, count int) string {
+func makeDistrict(rand *Rand, count int) string {
 	d_id, d_w_id := groupBy(DISTRICTS_PER_WAREHOUSE, count)
 	d_name := rand.RandAString(6, 10)
 	d_street_1 := rand.RandAString(10, 20)
@@ -140,7 +140,7 @@ func makeDistrict(rand Rand, count int) string {
 	d_state := rand.RandAString(2, 2)
 	d_zip := rand.RandZip()
 	d_tax := float64(rand.Rand(0, 2000)) / 10000.0
-  d_ytd := 30000.0
+	d_ytd := 30000.0
 	d_next_o_id := 3001
 
 	return fmt.Sprintf(
@@ -154,18 +154,16 @@ const CUSTOMERS_PER_DISTRICT int = 3000
 const CUSTOMERS_PER_WAREHOUSE int = CUSTOMERS_PER_DISTRICT * DISTRICTS_PER_WAREHOUSE
 const CUSTOMERS_PLACES string = "(%v,%v,%v,'%s','%s','%s','%s','%s','%s','%s','%s','%s',DEFAULT,'%s',%0.2f,%0.4f,%0.2f,%0.2f,%v,%v,'%s')"
 
-func makeCustomer(rand Rand, count int) string {
+func makeCustomer(rand *Rand, count int) string {
 	c_id, district := groupBy(CUSTOMERS_PER_DISTRICT, count)
 	c_d_id, c_w_id := groupBy(DISTRICTS_PER_WAREHOUSE, district)
 
-	c_last := "FOOBAR"
-/*
+	c_last := ""
 	if c_id <= 1000 {
-		c_last = MapLast(c_id - 1)
+		c_last = NumberToName(int64(c_id - 1))
 	} else {
-		c_last = rand.RandLast()
+		c_last = rand.RandCLastLoad()
 	}
-*/
 
 	c_middle := "OE"
 	c_first := rand.RandAString(8, 16)
@@ -197,16 +195,16 @@ func makeCustomer(rand Rand, count int) string {
 	)
 }
 
-func Populate(db *sql.DB, rand Rand, W int) error {
+func Populate(db *sql.DB, rand *Rand, W int) error {
 	var table_data = [...]struct {
 		name  string
 		card  int
-		maker func(rand Rand, count int) string
+		maker func(rand *Rand, count int) string
 	}{
 		{"item", ITEMS_COUNT, makeItem},
 		{"warehouse", W, makeWarehouse},
 		{"stock", W * STOCK_PER_WAREHOUSE, makeStock},
-    {"district", W * DISTRICTS_PER_WAREHOUSE, makeDistrict},
+		{"district", W * DISTRICTS_PER_WAREHOUSE, makeDistrict},
 		{"customer", W * CUSTOMERS_PER_WAREHOUSE, makeCustomer},
 	}
 

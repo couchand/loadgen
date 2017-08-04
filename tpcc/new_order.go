@@ -19,8 +19,7 @@ package main
 
 import (
 	"database/sql"
-
-	"github.com/cockroachdb/cockroach-go/crdb"
+	//"github.com/cockroachdb/cockroach-go/crdb"
 )
 
 type ol struct {
@@ -31,74 +30,75 @@ type ol struct {
 
 // 2.4
 func (t *Terminal) NewOrder(db *sql.DB) error {
-	// 2.4.1.1
-	w_id := t.w_id
+	/*
+		// 2.4.1.1
+		w_id := t.w_id
 
-	// 2.4.1.2
-	d_id := t.rand.Rand(1, 10)
-	c_id := t.c_id.Generate()
+		// 2.4.1.2
+		d_id := t.rand.Rand(1, 10)
+		c_id := t.c_id.Generate()
 
-	// 2.4.1.3
-	ol_cnt := t.rand.Rand(5, 15)
+		// 2.4.1.3
+		ol_cnt := t.rand.Rand(5, 15)
 
-	// 2.4.1.4
-	rbk := t.rand.Rand(1, 100)
+		// 2.4.1.4
+		rbk := t.rand.Rand(1, 100)
 
-	ols := make([]ol, ol_cnt)
+		ols := make([]ol, ol_cnt)
 
-	// 2.4.1.5
-	for i := int64(1); i <= ol_cnt; i++ {
+		// 2.4.1.5
+		for i := int64(1); i <= ol_cnt; i++ {
 
-		// 2.4.1.5.1
-		var ol_i_id int64
-		if i == ol_cnt && rbk == 1 {
-			ol_i_id = INVALID_I_ID
-		} else {
-			ol_i_id = t.ol_i_id.Generate()
-		}
+			// 2.4.1.5.1
+			var ol_i_id int64
+			if i == ol_cnt && rbk == 1 {
+				ol_i_id = INVALID_I_ID
+			} else {
+				ol_i_id = t.ol_i_id.Generate()
+			}
 
-		// 2.4.1.5.2
-		x := t.rand.Rand(1, 100)
-		ol_supply_w_id := w_id
-		if x == 1 && *W > 1 {
-			for ol_supply_w_id == w_id {
-				ol_supply_w_id = t.rand.Rand(1, int64(*W))
+			// 2.4.1.5.2
+			x := t.rand.Rand(1, 100)
+			ol_supply_w_id := w_id
+			if x == 1 && *W > 1 {
+				for ol_supply_w_id == w_id {
+					ol_supply_w_id = t.rand.Rand(1, int64(*W))
+				}
+			}
+
+			// 2.4.1.5.3
+			ol_quantity := t.rand.Rand(1, 10)
+
+			ols[i-1] = ol{
+				ol_i_id:        ol_i_id,
+				ol_supply_w_id: ol_supply_w_id,
+				ol_quantity:    ol_quantity,
 			}
 		}
 
-		// 2.4.1.5.3
-		ol_quantity := t.rand.Rand(1, 10)
+		err := crdb.ExecuteTx(db, func(tx *sql.Tx) error {
+			var w_tax int64
+			err := db.QueryRow("SELECT w_tax FROM warehouse WHERE w_id = $1;", w_id).Scan(&w_tax)
+			if err != nil {
+				return err
+			}
 
-		ols[i-1] = ol{
-			ol_i_id:        ol_i_id,
-			ol_supply_w_id: ol_supply_w_id,
-			ol_quantity:    ol_quantity,
-		}
-	}
+			var d_tax int64
+			err = db.QueryRow("SELECT d_tax FROM district WHERE w_id = $1 AND d_id = $2;", w_id, d_id).Scan(&d_tax)
+			if err != nil {
+				return err
+			}
 
-	err := crdb.ExecuteTx(db, func(tx *sql.Tx) error {
-		var w_tax int64
-		err := db.QueryRow("SELECT w_tax FROM warehouse WHERE w_id = $1;", w_id).Scan(&w_tax)
+			_ = c_id
+			_ = w_tax
+			_ = d_tax
+
+			return nil
+		})
+
 		if err != nil {
 			return err
 		}
-
-		var d_tax int64
-		err = db.QueryRow("SELECT d_tax FROM district WHERE w_id = $1 AND d_id = $2;", w_id, d_id).Scan(&d_tax)
-		if err != nil {
-			return err
-		}
-
-		_ = c_id
-		_ = w_tax
-		_ = d_tax
-
-		return nil
-	})
-
-	if err != nil {
-		return err
-	}
-
+	*/
 	return nil
 }

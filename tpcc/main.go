@@ -84,8 +84,11 @@ func main() {
 		}
 	}
 
+	rand, err := MakeRand(MakeRandSource(0), 0, 65, 0, 0)
+	if err != nil {
+		log.Fatalf("error creating rand source: %s\n", err)
+	}
 	if *populate {
-		rand := makeRand(0)
 		if err = Populate(db, rand, 10); err != nil {
 			log.Fatalf("populating initial data failed: %s\n", err)
 		}
@@ -95,7 +98,7 @@ func main() {
 		}
 	}
 
-	t := makeTerminal(0, 0, 0, 0, 0)
+	t := makeTerminal(rand, 0)
 	err = t.NewOrder(db)
 	if err != nil {
 		log.Fatalf("error creating new order: %s\n", err)

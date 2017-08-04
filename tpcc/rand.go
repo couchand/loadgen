@@ -24,18 +24,18 @@ import (
 )
 
 // Uniform random
-type Rand struct {
+type RandSource struct {
 	generator *rand.Rand
 }
 
-func makeRand(seed int64) Rand {
-	return Rand{
+func MakeRandSource(seed int64) RandSource {
+	return RandSource{
 		generator: rand.New(rand.NewSource(seed)),
 	}
 }
 
 // 2.1.5
-func (r Rand) Rand(x, y int64) int64 {
+func (r RandSource) Rand(x, y int64) int64 {
 	size := x - y + 1
 	min := y
 	if x < y {
@@ -47,7 +47,7 @@ func (r Rand) Rand(x, y int64) int64 {
 }
 
 // 4.3.2.2
-func (r Rand) randString(x, y int64, a, z rune) string {
+func (r RandSource) randString(x, y int64, a, z rune) string {
 	length := r.Rand(x, y)
 	buf := bytes.NewBuffer(make([]byte, 0, length))
 
@@ -58,16 +58,16 @@ func (r Rand) randString(x, y int64, a, z rune) string {
 	return buf.String()
 }
 
-func (r Rand) RandAString(x, y int64) string {
+func (r RandSource) RandAString(x, y int64) string {
 	return r.randString(x, y, 'A', 'Z')
 }
 
-func (r Rand) RandNString(x, y int64) string {
+func (r RandSource) RandNString(x, y int64) string {
 	return r.randString(x, y, '0', '9')
 }
 
 // 4.3.2.6
-func (r Rand) Perm(x, y int) []int {
+func (r RandSource) Perm(x, y int) []int {
 	size := x - y + 1
 	min := y
 	if x < y {
@@ -85,12 +85,12 @@ func (r Rand) Perm(x, y int) []int {
 }
 
 // 4.3.2.7
-func (r Rand) RandZip() string {
+func (r RandSource) RandZip() string {
 	return r.RandNString(4, 4) + "11111"
 }
 
 // 4.3.3.1
-func (r Rand) RandData() string{
+func (r RandSource) RandData() string {
 	data := r.RandAString(26, 50)
 
 	has_original := r.Rand(1, 10)
@@ -101,18 +101,18 @@ func (r Rand) RandData() string{
 			position = int(r.Rand(0, int64(length)))
 		}
 		rest := ""
-		if position + 8 < length {
+		if position+8 < length {
 			rest = data[position+8:]
 		}
 		data = data[:position] + "ORIGINAL" + rest
 	}
 
-  return data
+	return data
 }
 
 // Non-uniform random
 type nur struct {
-	r Rand
+	r RandSource
 	c int64
 }
 
@@ -132,7 +132,7 @@ func (f FieldGenerator) Generate() int64 {
 	return f.nurand(f.a, f.x, f.y)
 }
 
-func makeFieldGenerator(r Rand, c, a, x, y int64) FieldGenerator {
+func makeFieldGenerator(r RandSource, c, a, x, y int64) FieldGenerator {
 	return FieldGenerator{
 		nur: nur{
 			r: r,
@@ -144,11 +144,11 @@ func makeFieldGenerator(r Rand, c, a, x, y int64) FieldGenerator {
 	}
 }
 
-func C_ID(r Rand, c int64) FieldGenerator {
+func C_ID(r RandSource, c int64) FieldGenerator {
 	return makeFieldGenerator(r, c%1024, 1023, 1, 3000)
 }
 
-func OL_I_ID(r Rand, c int64) FieldGenerator {
+func OL_I_ID(r RandSource, c int64) FieldGenerator {
 	return makeFieldGenerator(r, c%8192, 8191, 1, 100000)
 }
 
@@ -182,7 +182,7 @@ func (g NameGenerator) Generate() string {
 	return NumberToName(i)
 }
 
-func C_LAST(r Rand, c int64) NameGenerator {
+func C_LAST(r RandSource, c int64) NameGenerator {
 	return NameGenerator{makeFieldGenerator(r, c%256, 255, 0, 999)}
 }
 
@@ -207,4 +207,43 @@ func ValidateC_LAST(cLoad, cRun int64) error {
 		)
 	}
 	return nil
+}
+
+type Rand struct {
+	RandSource
+	c_last_load NameGenerator
+	c_last_run  NameGenerator
+	c_id        FieldGenerator
+	ol_i_id     FieldGenerator
+}
+
+func (r *Rand) RandCLastLoad() string {
+	return r.c_last_load.Generate()
+}
+
+func (r *Rand) RandCLastRun() string {
+	return r.c_last_run.Generate()
+}
+
+func (r *Rand) RandCId() int64 {
+	return r.c_id.Generate()
+}
+
+func (r *Rand) RandOLIId() int64 {
+	return r.ol_i_id.Generate()
+}
+
+func MakeRand(ur RandSource, c_last_load_c, c_last_run_c, c_id_c, ol_i_id_c int64) (*Rand, error) {
+	err := ValidateC_LAST(c_last_load_c, c_last_run_c)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Rand{
+		RandSource:  ur,
+		c_last_load: C_LAST(ur, c_last_load_c),
+		c_last_run:  C_LAST(ur, c_last_run_c),
+		c_id:        C_ID(ur, c_id_c),
+		ol_i_id:     OL_I_ID(ur, ol_i_id_c),
+	}, nil
 }
