@@ -127,7 +127,7 @@ var createStmts = [...]string{
 			h_c_w_id          INT           NOT NULL,
 			h_d_id            INT           NOT NULL,
 			h_w_id            INT           NOT NULL,
-			h_date            TIMESTAMPTZ   NOT NULL,
+			h_date            TIMESTAMPTZ   NOT NULL DEFAULT current_timestamp(),
 			h_amount          DECIMAL(6,2)  NOT NULL,
 			h_data            STRING(24)    NOT NULL,
 

@@ -195,7 +195,69 @@ func makeCustomer(rand *Rand, count int) string {
 	)
 }
 
+const HISTORY_PLACES string = "(%v,%v,%v,%v,%v,DEFAULT,%0.2f,'%s')"
+
+func makeHistory(rand *Rand, count int) string {
+	h_c_id, district := groupBy(CUSTOMERS_PER_DISTRICT, count)
+	h_c_d_id, h_c_w_id := groupBy(DISTRICTS_PER_WAREHOUSE, district)
+	h_d_id, h_w_id := h_c_d_id, h_c_w_id
+	h_amount := 10.0
+	h_data := rand.RandAString(12, 24)
+
+	return fmt.Sprintf(
+		HISTORY_PLACES, h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id, h_amount, h_data,
+	)
+}
+
+var o_c_ids []int
+const ORDERS_PLACES string = "(%v,%v,%v,%v,DEFAULT,%v,%v,%v)"
+
+func makeOrder(rand *Rand, count int) string {
+	o_id, district := groupBy(CUSTOMERS_PER_DISTRICT, count)
+	o_d_id, o_w_id := groupBy(DISTRICTS_PER_WAREHOUSE, district)
+
+	o_c_id := 1
+//o_c_ids[0]
+	//o_c_ids = o_c_ids[1:]
+/*
+	if len(o_c_ids) == 0 {
+		if o_d_id + 1 != DISTRICTS_PER_WAREHOUSE {
+			panic(fmt.Sprintf("Resetting permutation in the wrong place! %v %v %v", o_id, o_d_id, o_w_id))
+		}
+		o_c_ids = rand.Perm(1, 1 + CUSTOMERS_PER_DISTRICT)
+	}
+*/
+	o_carrier_id := "NULL"
+	if o_id < 2101 {
+		o_carrier_id = fmt.Sprintf("%v", rand.Rand(1, 10))
+	}
+
+	o_ol_cnt := rand.Rand(5, 15)
+	o_all_local := 1
+
+	return fmt.Sprintf(
+		ORDERS_PLACES, o_id, o_c_id, o_d_id, o_w_id,
+		o_carrier_id, o_ol_cnt, o_all_local,
+	)
+}
+
+const NEWORDERS_PER_DISTRICT = 9//00
+const NEWORDERS_PER_WAREHOUSE = NEWORDERS_PER_DISTRICT * DISTRICTS_PER_WAREHOUSE
+const NEWORDERS_PLACES = "(%v,%v,%v)"
+
+func makeNewOrder(rand *Rand, count int) string {
+	order, district := groupBy(NEWORDERS_PER_DISTRICT, count)
+	no_o_id := order + 2100
+	no_d_id, no_w_id := groupBy(DISTRICTS_PER_WAREHOUSE, district)
+
+	return fmt.Sprintf(
+		NEWORDERS_PLACES, no_o_id, no_d_id, no_w_id,
+	)
+}
+
 func Populate(db *sql.DB, rand *Rand, W int) error {
+	o_c_ids = rand.Perm(1, 1 + CUSTOMERS_PER_DISTRICT)
+
 	var table_data = [...]struct {
 		name  string
 		card  int
@@ -206,6 +268,9 @@ func Populate(db *sql.DB, rand *Rand, W int) error {
 		{"stock", W * STOCK_PER_WAREHOUSE, makeStock},
 		{"district", W * DISTRICTS_PER_WAREHOUSE, makeDistrict},
 		{"customer", W * CUSTOMERS_PER_WAREHOUSE, makeCustomer},
+		{"history", W * CUSTOMERS_PER_WAREHOUSE, makeHistory},
+		{"\"order\"", W * CUSTOMERS_PER_WAREHOUSE, makeOrder},
+		{"newOrder", W * NEWORDERS_PER_WAREHOUSE, makeNewOrder},
 	}
 
 	var err error
