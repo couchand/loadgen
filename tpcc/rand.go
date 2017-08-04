@@ -112,13 +112,13 @@ func (r Rand) RandData() string{
 
 // Non-uniform random
 type nur struct {
-	Rand
+	r Rand
 	c int64
 }
 
 // 2.1.6
 func (r nur) nurand(a, x, y int64) int64 {
-	return (((r.Rand.Rand(0, a) | r.Rand.Rand(x, y)) + r.c) % (y - x + 1)) + x
+	return (((r.r.Rand(0, a) | r.r.Rand(x, y)) + r.c) % (y - x + 1)) + x
 }
 
 type FieldGenerator struct {
@@ -132,11 +132,11 @@ func (f FieldGenerator) Generate() int64 {
 	return f.nurand(f.a, f.x, f.y)
 }
 
-func makeFieldGenerator(seed, c, a, x, y int64) FieldGenerator {
+func makeFieldGenerator(r Rand, c, a, x, y int64) FieldGenerator {
 	return FieldGenerator{
 		nur: nur{
-			Rand: makeRand(seed),
-			c:    c,
+			r: r,
+			c: c,
 		},
 		a: a,
 		x: x,
@@ -144,12 +144,12 @@ func makeFieldGenerator(seed, c, a, x, y int64) FieldGenerator {
 	}
 }
 
-func C_ID(seed, c int64) FieldGenerator {
-	return makeFieldGenerator(seed, c%1024, 1023, 1, 3000)
+func C_ID(r Rand, c int64) FieldGenerator {
+	return makeFieldGenerator(r, c%1024, 1023, 1, 3000)
 }
 
-func OL_I_ID(seed, c int64) FieldGenerator {
-	return makeFieldGenerator(seed, c%8192, 8191, 1, 100000)
+func OL_I_ID(r Rand, c int64) FieldGenerator {
+	return makeFieldGenerator(r, c%8192, 8191, 1, 100000)
 }
 
 // 2.4.1.5.1
@@ -169,17 +169,21 @@ var syllables = [...]string{
 	"EING",
 }
 
+func NumberToName(i int64) string {
+	return syllables[(i/100)%10] + syllables[(i/10)%10] + syllables[i%10]
+}
+
 type NameGenerator struct {
 	Num FieldGenerator
 }
 
 func (g NameGenerator) Generate() string {
 	i := g.Num.Generate()
-	return syllables[i/100] + syllables[(i/10)%10] + syllables[i%10]
+	return NumberToName(i)
 }
 
-func C_LAST(seed, c int64) NameGenerator {
-	return NameGenerator{makeFieldGenerator(seed, c%256, 255, 0, 999)}
+func C_LAST(r Rand, c int64) NameGenerator {
+	return NameGenerator{makeFieldGenerator(r, c%256, 255, 0, 999)}
 }
 
 // 2.1.6.1

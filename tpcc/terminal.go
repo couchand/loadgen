@@ -27,11 +27,12 @@ type Terminal struct {
 }
 
 func makeTerminal(seed, c_last, c_id, ol_i_id, w_id int64) *Terminal {
+	rand := makeRand(seed)
 	return &Terminal{
-		rand:    makeRand(seed),
+		rand:    rand,
 		w_id:    w_id,
-		c_last:  C_LAST(seed, c_last),
-		c_id:    C_ID(seed, c_id),
-		ol_i_id: OL_I_ID(seed, ol_i_id),
+		c_last:  C_LAST(rand, c_last),
+		c_id:    C_ID(rand, c_id),
+		ol_i_id: OL_I_ID(rand, ol_i_id),
 	}
 }
