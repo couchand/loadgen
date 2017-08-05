@@ -71,7 +71,7 @@ func populateTable(
 	return insertRows(db, prefix, rows)
 }
 
-const ITEMS_COUNT = 100 //000
+const ITEMS_COUNT = 100000
 const ITEMS_PLACES = "(%v,%v,'%s',%0.2f,'%s')"
 
 func makeItem(rand *Rand, count int) string {
@@ -145,7 +145,7 @@ func makeDistrict(rand *Rand, count int) string {
 	d_zip := rand.RandZip()
 	d_tax := float64(rand.Rand(0, 2000)) / 10000.0
 	d_ytd := 30000.0
-	d_next_o_id := 3001
+	d_next_o_id := ORDERS_PER_DISTRICT + 1
 
 	return fmt.Sprintf(
 		DISTRICTS_PLACES, d_id, d_w_id, d_name,
@@ -154,7 +154,7 @@ func makeDistrict(rand *Rand, count int) string {
 	)
 }
 
-const CUSTOMERS_PER_DISTRICT int = 30 //00
+const CUSTOMERS_PER_DISTRICT int = 3000
 const CUSTOMERS_PER_WAREHOUSE int = CUSTOMERS_PER_DISTRICT * DISTRICTS_PER_WAREHOUSE
 const CUSTOMERS_PLACES string = "(%v,%v,%v,'%s','%s','%s','%s','%s','%s','%s','%s','%s',%s,'%s',%0.2f,%0.4f,%0.2f,%0.2f,%v,%v,'%s')"
 
@@ -241,7 +241,7 @@ func makeOrder(rand *Rand, count int) string {
 	o_d_id, o_w_id := groupBy(DISTRICTS_PER_WAREHOUSE, district)
 
 	if o_id == 1 {
-		o_c_ids = rand.Perm(1, ORDERS_PER_DISTRICT)
+		o_c_ids = rand.Perm(1, CUSTOMERS_PER_DISTRICT)
 	}
 	o_c_id := o_c_ids[0]
 	o_c_ids = o_c_ids[1:]
@@ -264,7 +264,7 @@ func makeOrder(rand *Rand, count int) string {
 	)
 }
 
-const NEWORDERS_PER_DISTRICT int = 9 //00
+const NEWORDERS_PER_DISTRICT int = 900
 const NEWORDERS_PER_WAREHOUSE int = NEWORDERS_PER_DISTRICT * DISTRICTS_PER_WAREHOUSE
 const NEWORDERS_PLACES string = "(%v,%v,%v)"
 const NUM_ORDERS_BEFORE_NEWORDER int = ORDERS_PER_DISTRICT - NEWORDERS_PER_DISTRICT
@@ -287,7 +287,7 @@ func makeOrderLines(rand *Rand, count int) string {
 	values := make([]string, cnt)
 
 	for i := 0; i < cnt; i++ {
-		values[i] = makeOrderLine(rand, i, ol_o_id, ol_d_id, ol_w_id)
+		values[i] = makeOrderLine(rand, i+1, ol_o_id, ol_d_id, ol_w_id)
 	}
 
 	return strings.Join(values, ",")
@@ -307,7 +307,7 @@ func makeOrderLine(rand *Rand, ol_number, ol_o_id, ol_d_id, ol_w_id int) string 
 	ol_quantity := 5
 
 	ol_amount := 0.0
-	if ol_o_id <= NUM_ORDERS_BEFORE_NEWORDER {
+	if ol_o_id > NUM_ORDERS_BEFORE_NEWORDER {
 		ol_amount = float64(rand.Rand(1, 999999)) / 1000000.0
 	}
 
