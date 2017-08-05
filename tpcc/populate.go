@@ -13,9 +13,6 @@ import (
 
 const BATCH_SIZE = 500
 
-const ITEMS_COUNT = 100000
-const ITEMS_PLACES = "(%v,%v,'%s',%0.2f,'%s')"
-
 // Performs a one-indexed group by
 func groupBy(group_size, count int) (item, group int) {
 	index := count - 1
@@ -70,6 +67,9 @@ func populateTable(
 	return insertRows(db, prefix, rows)
 }
 
+const ITEMS_COUNT = 100 //000
+const ITEMS_PLACES = "(%v,%v,'%s',%0.2f,'%s')"
+
 func makeItem(rand *Rand, count int) string {
 	i_id := count
 	i_im_id := rand.Rand(1, 10000)
@@ -99,7 +99,7 @@ func makeWarehouse(rand *Rand, count int) string {
 	)
 }
 
-const STOCK_PER_WAREHOUSE int = 100000
+const STOCK_PER_WAREHOUSE int = ITEMS_COUNT
 const STOCK_PLACES string = "(%v,%v,%v,'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%v,%v,%v,'%s')"
 
 func makeStock(rand *Rand, count int) string {
@@ -150,7 +150,7 @@ func makeDistrict(rand *Rand, count int) string {
 	)
 }
 
-const CUSTOMERS_PER_DISTRICT int = 3000
+const CUSTOMERS_PER_DISTRICT int = 30 //00
 const CUSTOMERS_PER_WAREHOUSE int = CUSTOMERS_PER_DISTRICT * DISTRICTS_PER_WAREHOUSE
 const CUSTOMERS_PLACES string = "(%v,%v,%v,'%s','%s','%s','%s','%s','%s','%s','%s','%s',DEFAULT,'%s',%0.2f,%0.4f,%0.2f,%0.2f,%v,%v,'%s')"
 
@@ -210,23 +210,21 @@ func makeHistory(rand *Rand, count int) string {
 }
 
 var o_c_ids []int
+
+const ORDERS_PER_DISTRICT int = CUSTOMERS_PER_DISTRICT
+const ORDERS_PER_WAREHOUSE int = ORDERS_PER_DISTRICT * DISTRICTS_PER_WAREHOUSE
 const ORDERS_PLACES string = "(%v,%v,%v,%v,DEFAULT,%v,%v,%v)"
 
 func makeOrder(rand *Rand, count int) string {
-	o_id, district := groupBy(CUSTOMERS_PER_DISTRICT, count)
+	o_id, district := groupBy(ORDERS_PER_DISTRICT, count)
 	o_d_id, o_w_id := groupBy(DISTRICTS_PER_WAREHOUSE, district)
 
-	o_c_id := 1
-//o_c_ids[0]
-	//o_c_ids = o_c_ids[1:]
-/*
-	if len(o_c_ids) == 0 {
-		if o_d_id + 1 != DISTRICTS_PER_WAREHOUSE {
-			panic(fmt.Sprintf("Resetting permutation in the wrong place! %v %v %v", o_id, o_d_id, o_w_id))
-		}
-		o_c_ids = rand.Perm(1, 1 + CUSTOMERS_PER_DISTRICT)
+	if o_id == 1 {
+		o_c_ids = rand.Perm(1, ORDERS_PER_DISTRICT)
 	}
-*/
+	o_c_id := o_c_ids[0]
+	o_c_ids = o_c_ids[1:]
+
 	o_carrier_id := "NULL"
 	if o_id < 2101 {
 		o_carrier_id = fmt.Sprintf("%v", rand.Rand(1, 10))
@@ -236,18 +234,19 @@ func makeOrder(rand *Rand, count int) string {
 	o_all_local := 1
 
 	return fmt.Sprintf(
-		ORDERS_PLACES, o_id, o_c_id, o_d_id, o_w_id,
+		ORDERS_PLACES, o_id, o_d_id, o_w_id, o_c_id,
 		o_carrier_id, o_ol_cnt, o_all_local,
 	)
 }
 
-const NEWORDERS_PER_DISTRICT = 9//00
-const NEWORDERS_PER_WAREHOUSE = NEWORDERS_PER_DISTRICT * DISTRICTS_PER_WAREHOUSE
-const NEWORDERS_PLACES = "(%v,%v,%v)"
+const NEWORDERS_PER_DISTRICT int = 9 //00
+const NEWORDERS_PER_WAREHOUSE int = NEWORDERS_PER_DISTRICT * DISTRICTS_PER_WAREHOUSE
+const NEWORDERS_PLACES string = "(%v,%v,%v)"
+const FIRST_NEWORDER_ID int = ORDERS_PER_DISTRICT - NEWORDERS_PER_DISTRICT
 
 func makeNewOrder(rand *Rand, count int) string {
 	order, district := groupBy(NEWORDERS_PER_DISTRICT, count)
-	no_o_id := order + 2100
+	no_o_id := order + FIRST_NEWORDER_ID
 	no_d_id, no_w_id := groupBy(DISTRICTS_PER_WAREHOUSE, district)
 
 	return fmt.Sprintf(
@@ -256,8 +255,6 @@ func makeNewOrder(rand *Rand, count int) string {
 }
 
 func Populate(db *sql.DB, rand *Rand, W int) error {
-	o_c_ids = rand.Perm(1, 1 + CUSTOMERS_PER_DISTRICT)
-
 	var table_data = [...]struct {
 		name  string
 		card  int
@@ -269,7 +266,7 @@ func Populate(db *sql.DB, rand *Rand, W int) error {
 		{"district", W * DISTRICTS_PER_WAREHOUSE, makeDistrict},
 		{"customer", W * CUSTOMERS_PER_WAREHOUSE, makeCustomer},
 		{"history", W * CUSTOMERS_PER_WAREHOUSE, makeHistory},
-		{"\"order\"", W * CUSTOMERS_PER_WAREHOUSE, makeOrder},
+		{"\"order\"", W * ORDERS_PER_WAREHOUSE, makeOrder},
 		{"newOrder", W * NEWORDERS_PER_WAREHOUSE, makeNewOrder},
 	}
 
