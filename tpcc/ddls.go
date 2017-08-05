@@ -271,12 +271,12 @@ func resolveTableTypeFromFileName(filename string) (table, error) {
 func createTables(db *sql.DB) error {
 	if *drop {
 		if *verbose {
-			log.Println("Dropping any existing tables")
+			log.Println("dropping any existing tables")
 		}
 
 		for i, dropStmt := range dropStmts {
 			if *verbose {
-				log.Println("executing: ", dropStmt)
+				log.Printf("dropping table %s\n", tableNames[i])
 			}
 			err := crdb.ExecuteTx(db, func(tx *sql.Tx) error {
 				_, inErr := db.Exec(dropStmt)
@@ -301,7 +301,7 @@ func createTables(db *sql.DB) error {
 
 	for i, createStmt := range createStmts {
 		if *verbose {
-			log.Println("executing: ", createStmt)
+			log.Printf("creating table %s\n", tableNames[i])
 		}
 		err := crdb.ExecuteTx(db, func(tx *sql.Tx) error {
 			_, inErr := db.Exec(createStmt)
