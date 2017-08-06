@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cockroachdb/cockroach-go/crdb"
 )
 
 const BATCH_SIZE = 500
+const PARALLEL_FACTOR = 10
 
 var loadTime string = time.Now().Format("'2006-01-02T15:04:05'")
 
@@ -25,13 +27,27 @@ func groupBy(group_size, count int) (item, group int) {
 }
 
 // Inserts the row values into the table
-func insertRows(db *sql.DB, prefix string, items []string) error {
+func insertRows(prefix string, items []string, row_chan chan<- string, err_chan <-chan error) error {
 	statement := prefix + strings.Join(items, ",")
 
-	return crdb.ExecuteTx(db, func(tx *sql.Tx) error {
-		_, err := db.Exec(statement)
-		return err
-	})
+	select {
+		case err := <-err_chan: return err
+		case row_chan <- statement: return nil
+	}
+}
+
+// Row inserter worker
+func rowInserter(db *sql.DB, row_chan <-chan string, err_chan chan<- error) {
+	for statement := range row_chan {
+		err := crdb.ExecuteTx(db, func(tx *sql.Tx) error {
+			_, err := db.Exec(statement)
+			return err
+		})
+		if err != nil {
+			err_chan <- err
+			return
+		}
+	}
 }
 
 // Populate a table with a number of records
@@ -47,12 +63,24 @@ func populateTable(
 		log.Printf("populating initial data for table %s\n", table)
 	}
 
+	row_chan := make(chan string)
+	err_chan := make(chan error)
+
+	var wg sync.WaitGroup
+	wg.Add(PARALLEL_FACTOR)
+	for i := 0; i < PARALLEL_FACTOR; i++ {
+		go func() {
+			rowInserter(db, row_chan, err_chan)
+			wg.Done()
+		}()
+	}
+
 	prefix := fmt.Sprintf("INSERT INTO %s VALUES ", table)
 	rows := make([]string, 0, batch)
 
 	for count, i := 0, 0; count < cardinality; i++ {
 		if i == batch {
-			err := insertRows(db, prefix, rows)
+			err := insertRows(prefix, rows, row_chan, err_chan)
 			if err != nil {
 				return err
 			}
@@ -68,7 +96,15 @@ func populateTable(
 		)
 	}
 
-	return insertRows(db, prefix, rows)
+	err := insertRows(prefix, rows, row_chan, err_chan)
+	if err != nil {
+		return err
+	}
+
+	close(row_chan)
+	wg.Wait()
+
+	return nil
 }
 
 const ITEMS_COUNT = 100000
