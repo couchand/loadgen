@@ -98,9 +98,15 @@ func main() {
 		}
 	}
 
-	t := makeTerminal(rand, 1)
-	err = t.NewOrder(db)
-	if err != nil {
-		log.Fatalf("error creating new order: %s\n", err)
-	}
+  for i := int64(0); i < 10; i++ {
+  go func() {
+	t := makeTerminal(rand, i)
+	for {
+		err = t.NewOrder(db)
+		if err != nil {
+			log.Fatalf("error creating new order: %s\n", err)
+		}
+	}}()
+}
+  for {}
 }

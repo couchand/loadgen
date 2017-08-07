@@ -18,6 +18,9 @@
 package main
 
 import (
+"bytes"
+"runtime"
+
 	"database/sql"
 	"fmt"
 	"strings"
@@ -45,6 +48,21 @@ type st struct {
 	s_ytd        int64
 	s_order_cnt  int64
 	s_remote_cnt int64
+}
+
+func debug() {
+  buf := make([]byte, 0, 500)
+  runtime.Stack(buf, true)
+  fmt.Printf(bytes.NewBuffer(buf).String() + "\n")
+
+  _, file, line, ok := runtime.Caller(0)
+  if ok {
+    fmt.Printf("crashing at %v:%v\n", file, line)
+  }
+  _, file, line, ok = runtime.Caller(1)
+  if ok {
+    fmt.Printf("crashing at %v:%v\n", file, line)
+  }
 }
 
 // 2.4
@@ -102,6 +120,7 @@ func (t *Terminal) NewOrder(db *sql.DB) error {
 		var w_tax float64
 		err := tx.QueryRow("SELECT w_tax FROM warehouse WHERE w_id = $1;", w_id).Scan(&w_tax)
 		if err != nil {
+debug()
 			return err
 		}
 
@@ -109,11 +128,13 @@ func (t *Terminal) NewOrder(db *sql.DB) error {
 		var o_id int64
 		err = tx.QueryRow("SELECT d_tax, d_next_o_id FROM district WHERE d_w_id = $1 AND d_id = $2;", w_id, d_id).Scan(&d_tax, &o_id)
 		if err != nil {
+debug()
 			return err
 		}
 
 		_, err = tx.Exec("UPDATE district SET d_next_o_id = $1 WHERE d_w_id = $2 AND d_id = $3;", o_id+1, w_id, d_id)
 		if err != nil {
+debug()
 			return err
 		}
 
@@ -122,16 +143,19 @@ func (t *Terminal) NewOrder(db *sql.DB) error {
 		var c_credit string
 		err = tx.QueryRow("SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = $1 AND c_d_id = $2 AND c_id = $3;", w_id, d_id, c_id).Scan(&c_discount, &c_last, &c_credit)
 		if err != nil {
+debug()
 			return err
 		}
 
 		_, err = tx.Exec("INSERT INTO \"order\" VALUES ($1, $2, $3, $4, DEFAULT, NULL, $5, $6);", o_id, d_id, w_id, c_id, ol_cnt, ol_all_local)
 		if err != nil {
+debug()
 			return err
 		}
 
 		_, err = tx.Exec("INSERT INTO new_order VALUES ($1, $2, $3);", o_id, d_id, w_id)
 		if err != nil {
+debug()
 			return err
 		}
 
@@ -153,12 +177,14 @@ func (t *Terminal) NewOrder(db *sql.DB) error {
 			var i it
 			err = res.Scan(&i.i_id, &i.i_price, &i.i_name, &i.i_data)
 			if err != nil {
+debug()
 				return err
 			}
 			item_details[i.i_id] = i
 		}
 		err = res.Err()
 		if err != nil {
+debug()
 			return err
 		}
 
@@ -168,6 +194,10 @@ func (t *Terminal) NewOrder(db *sql.DB) error {
 			var s st
 			err = tx.QueryRow(stock_query, line.ol_i_id, line.ol_supply_w_id).Scan(&s.s_quantity, &s.s_dist, &s.s_data, &s.s_ytd, &s.s_order_cnt, &s.s_remote_cnt)
 			if err != nil {
+fmt.Printf("tried to get stock for %v at %v\n", line.ol_i_id, line.ol_supply_w_id)
+fmt.Printf("using query: %s\n", stock_query)
+debug()
+return nil
 				return err
 			}
 			stock_details[i] = s
@@ -185,11 +215,13 @@ func (t *Terminal) NewOrder(db *sql.DB) error {
 
 			_, err = tx.Exec("UPDATE stock SET s_quantity = $1, s_ytd = $2, s_order_cnt = $3, s_remote_cnt = $4 WHERE s_i_id = $5 AND s_w_id = $6;", new_quantity, new_ytd, new_order_cnt, new_remote_cnt, line.ol_i_id, line.ol_supply_w_id)
 			if err != nil {
+debug()
 				return err
 			}
 		}
 		err = res.Err()
 		if err != nil {
+debug()
 			return err
 		}
 
@@ -219,6 +251,7 @@ func (t *Terminal) NewOrder(db *sql.DB) error {
 		}
 		_, err = tx.Exec("INSERT INTO order_line VALUES " + strings.Join(lines, ",") + ";")
 		if err != nil {
+debug()
 			return err
 		}
 
@@ -231,6 +264,7 @@ func (t *Terminal) NewOrder(db *sql.DB) error {
 	})
 
 	if err != nil {
+debug()
 		return err
 	}
 
