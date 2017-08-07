@@ -98,7 +98,7 @@ func main() {
 		}
 	}
 
-	t := makeTerminal(rand, 0)
+	t := makeTerminal(rand, 1)
 	err = t.NewOrder(db)
 	if err != nil {
 		log.Fatalf("error creating new order: %s\n", err)

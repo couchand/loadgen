@@ -31,8 +31,10 @@ func insertRows(prefix string, items []string, row_chan chan<- string, err_chan 
 	statement := prefix + strings.Join(items, ",")
 
 	select {
-		case err := <-err_chan: return err
-		case row_chan <- statement: return nil
+	case err := <-err_chan:
+		return err
+	case row_chan <- statement:
+		return nil
 	}
 }
 
