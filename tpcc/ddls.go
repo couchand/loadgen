@@ -42,13 +42,13 @@ const (
 )
 
 var tableNames = [...]string{
-	warehouse: "warehouse",
-	district:  "district",
-	customer:  "customer",
-	history:   "history",
-	item:      "item",
-	stock:     "stock",
-	order:     "order",
+	warehouse:  "warehouse",
+	district:   "district",
+	customer:   "customer",
+	history:    "history",
+	item:       "item",
+	stock:      "stock",
+	order:      "order",
 	new_order:  "new_order",
 	order_line: "order_line",
 }
