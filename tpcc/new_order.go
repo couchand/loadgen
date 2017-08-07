@@ -130,7 +130,7 @@ func (t *Terminal) NewOrder(db *sql.DB) error {
 			return err
 		}
 
-		_, err = tx.Exec("INSERT INTO newOrder VALUES ($1, $2, $3);", o_id, d_id, w_id)
+		_, err = tx.Exec("INSERT INTO new_order VALUES ($1, $2, $3);", o_id, d_id, w_id)
 		if err != nil {
 			return err
 		}
@@ -217,7 +217,7 @@ func (t *Terminal) NewOrder(db *sql.DB) error {
 
 			lines[i] = fmt.Sprintf("(%v,%v,%v,%v,%v,%v,NULL,%v,%0.2f,'%s')", o_id, d_id, w_id, ol_number, line.ol_i_id, line.ol_supply_w_id, line.ol_quantity, ol_amount, ol_dist_info)
 		}
-		_, err = tx.Exec("INSERT INTO orderLine VALUES " + strings.Join(lines, ",") + ";")
+		_, err = tx.Exec("INSERT INTO order_line VALUES " + strings.Join(lines, ",") + ";")
 		if err != nil {
 			return err
 		}

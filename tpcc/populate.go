@@ -373,8 +373,8 @@ func Populate(db *sql.DB, rand *Rand, W int) error {
 		{"customer", W * CUSTOMERS_PER_WAREHOUSE, makeCustomer, BATCH_SIZE},
 		{"history", W * CUSTOMERS_PER_WAREHOUSE, makeHistory, BATCH_SIZE},
 		{"\"order\"", W * ORDERS_PER_WAREHOUSE, makeOrder, BATCH_SIZE},
-		{"newOrder", W * NEWORDERS_PER_WAREHOUSE, makeNewOrder, BATCH_SIZE},
-		{"orderLine", W * ORDERS_PER_WAREHOUSE, makeOrderLines, BATCH_SIZE / 10},
+		{"new_order", W * NEWORDERS_PER_WAREHOUSE, makeNewOrder, BATCH_SIZE},
+		{"order_line", W * ORDERS_PER_WAREHOUSE, makeOrderLines, BATCH_SIZE / 10},
 	}
 
 	var err error

@@ -36,8 +36,8 @@ const (
 	item
 	stock
 	order
-	newOrder
-	orderLine
+	new_order
+	order_line
 	numTables
 )
 
@@ -49,8 +49,8 @@ var tableNames = [...]string{
 	item:      "item",
 	stock:     "stock",
 	order:     "order",
-	newOrder:  "newOrder",
-	orderLine: "orderLine",
+	new_order:  "new_order",
+	order_line: "order_line",
 }
 
 // 1.3.1
@@ -197,8 +197,8 @@ var createStmts = [...]string{
 		);
 	`,
 
-	newOrder: `
-		CREATE TABLE newOrder (
+	new_order: `
+		CREATE TABLE new_order (
 			no_o_id           INT           NOT NULL,
 			no_d_id           INT           NOT NULL,
 			no_w_id           INT           NOT NULL,
@@ -209,8 +209,8 @@ var createStmts = [...]string{
 		) INTERLEAVE IN PARENT "order" (no_w_id, no_d_id, no_o_id);
 	`,
 
-	orderLine: `
-		CREATE TABLE orderLine (
+	order_line: `
+		CREATE TABLE order_line (
 			ol_o_id           INT           NOT NULL,
 			ol_d_id           INT           NOT NULL,
 			ol_w_id           INT           NOT NULL,
@@ -239,8 +239,8 @@ var dropStmts = [...]string{
 	"DROP TABLE IF EXISTS item CASCADE",
 	"DROP TABLE IF EXISTS stock CASCADE",
 	"DROP TABLE IF EXISTS \"order\" CASCADE",
-	"DROP TABLE IF EXISTS newOrder CASCADE",
-	"DROP TABLE IF EXISTS orderLine CASCADE",
+	"DROP TABLE IF EXISTS new_order CASCADE",
+	"DROP TABLE IF EXISTS order_line CASCADE",
 }
 
 func resolveTableTypeFromFileName(filename string) (table, error) {
@@ -259,10 +259,10 @@ func resolveTableTypeFromFileName(filename string) (table, error) {
 		return stock, nil
 	case "order":
 		return order, nil
-	case "newOrder":
-		return newOrder, nil
-	case "orderLine":
-		return orderLine, nil
+	case "new_order":
+		return new_order, nil
+	case "order_line":
+		return order_line, nil
 	default:
 		return -1, errors.Errorf("filenames must be of the form tabletype.num.tbl, found: '%s'", filename)
 	}
