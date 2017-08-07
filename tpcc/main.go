@@ -100,7 +100,7 @@ func main() {
 
 	for i := int64(0); i < 10; i++ {
 		go func() {
-			t := makeTerminal(rand, i)
+			t := makeTerminal(rand, i, 1)
 			for {
 				err = t.NewOrder(db)
 				if err != nil {

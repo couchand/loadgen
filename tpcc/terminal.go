@@ -20,11 +20,13 @@ package main
 type Terminal struct {
 	rand *Rand
 	w_id int64
+	d_id int64
 }
 
-func makeTerminal(rand *Rand, w_id int64) *Terminal {
+func makeTerminal(rand *Rand, w_id, d_id int64) *Terminal {
 	return &Terminal{
 		rand: rand,
 		w_id: w_id,
+		d_id: d_id,
 	}
 }
